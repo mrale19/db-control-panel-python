@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Страница авторизации</title>
+  <!-- Подключаем CDN Tailwind CSS -->
+    <link href="../static/tw.css" rel="stylesheet">
+  <style>
+    .active {
+
+        background-color: rgb(59 130 246);
+        color: white;
+        padding-left: 10px;
+        padding-right: 10px;
+        border-radius: 10px; /* добавляем подчеркивание к активной кнопке */
+    }
+/* Добавляем стили для анимации появления */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.error-div {
+    margin-top: 10px;
+    padding: 5px;
+    border-radius: 5px;
+    background-color: red;
+    opacity: 0; /* Начальное значение нулевой прозрачности */
+    animation: fadeIn 0.8s ease forwards; /* Применяем анимацию появления */
+}
+
+.error-message {
+    /* стили для сообщения об ошибке */
+    /* Например: */
+    color: white;
+    font-weight: bold;
+    text-align: center;
+}
+button.active {
+    background-color: #3b82f6; /* Ваш цвет bg-blue-500 */
+    color: #fff; /* Цвет текста для видимости */
+}
+button {
+    width: calc(50% - 8px); /* Равномерное распределение кнопок с учетом отступов */
+    margin-right: 8px; /* Отступ между кнопками */
+}
+button:last-child {
+    margin-right: 0; /* Убираем отступ у последней кнопки */
+}
+  </style>
+</head>
+
+<body class="bg-gray-200 flex items-center justify-center h-screen">
+  <div id="raiseerror" class="bg-white p-8 rounded shadow-md w-80">
+    <!-- Переключатель между авторизацией и регистрацией -->
+    <div class="flex justify-around  mb-3 ">
+        Авторизация
+        <button id="loginTab" class="py-2 px-2 text-sm text-blue-500 active hidden">Авторизация</button>
+        <button id="registerTab" class="py-2 px-2 text-sm text-blue-600 hidden">Регистрация</button>
+  </div>
+  
+  
+    <!-- Поля для ввода логина и пароля -->
+    <form id="loginForm">
+      <!-- Поля для авторизации -->
+      <div id="loginFields">
+        <div class="mb-4">
+          <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Номер телефона</label>
+          <input type="text" id="phone" name="phone" class="w-full px-4 py-2 border-2 rounded-md focus:outline-none focus:border-blue-600">
+        </div>
+        <div class="mb-4">
+          <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Пароль</label>
+          <input type="password" id="password" name="password" class="w-full px-4 py-2 border-2 rounded-md focus:outline-none focus:border-blue-600">
+        </div>
+        <button type="submit" class="w-full py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:bg-blue-600">Войти</button>
+      </div>
+  
+      <!-- Поля для регистрации -->
+      <div id="registerFields" style="display: none;">
+        <!-- Добавьте поля для регистрации здесь -->
+      </div>
+    </form>
+  </div>
+
+
+<script>
+  // Функция для отправки запроса на сервер
+function sendLoginData(event) {
+  event.preventDefault(); // Предотвращаем стандартное поведение формы
+  const loginTab = document.getElementById('loginTab')
+  const phone = document.getElementById('phone').value; // Получаем значение поля логина
+  const password = document.getElementById('password').value; // Получаем значение поля пароля
+
+  // Формируем объект с данными для отправки на сервер
+  const data = {
+    phone,
+    password,
+    operation: loginTab.classList.contains('active'),
+  };
+
+  // Выполняем AJAX-запрос на сервер
+  fetch('/login', {
+    method: 'POST', // Используем метод POST для отправки данных
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data) // Преобразуем данные в JSON и отправляем на сервер
+  })
+  .then(response => {
+    if (response.redirected) {
+      window.location.href = response.url; // Перенаправление на URL после статуса 302
+    } else {
+      // Обработка ответа, если нет перенаправления
+      return response.json(); // Пример чтения ответа в формате JSON
+    }
+  })
+  .then(data => {
+    console.log(data);
+    console.log(document.getElementById('errordiv'));
+    if (document.getElementById('errordiv') === null && data.auth == 'failed') {
+      const newDivElement = document.createElement('div');
+      newDivElement.id = 'errordiv';
+    const newPElement = document.createElement('p');
+    newDivElement.classList.add('error-div'); // Добавляем класс для div
+    newPElement.classList.add('error-message'); // Добавляем класс для p
+    newPElement.textContent = 'Неверный логин или пароль';
+    newDivElement.appendChild(newPElement);
+
+    const elementError = document.getElementById('raiseerror');
+    elementError.appendChild(newDivElement);
+    }
+})
+   .catch(error => {
+    console.error('Произошла ошибка:', error);
+  });
+}
+
+// Получаем форму по ID и добавляем обработчик события для отправки данных на сервер при отправке формы
+const form = document.getElementById('loginForm');
+form.addEventListener('submit', sendLoginData);
+
+</script>
+</body>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const loginTab = document.getElementById("loginTab");
+    const registerTab = document.getElementById("registerTab");
+
+    loginTab.addEventListener("click", function () {
+        loginTab.classList.add("active");
+        registerTab.classList.remove("active");
+    });
+
+    registerTab.addEventListener("click", function () {
+        registerTab.classList.add("active");
+        loginTab.classList.remove("active");
+    });
+});
+</script>
+</html>

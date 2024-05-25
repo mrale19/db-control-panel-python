@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Продажи ресторана</title>
+{#    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">#}
+    <link href="../static/tw.css" rel="stylesheet">
+    <style>
+        .table-bordered {
+            border-width: 3px;
+        }
+
+        .hide {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-blue-500 py-2 text-white flex justify-between items-center px-8">
+        <div>
+            <a class="text-white font-medium rounded-md pl-3 pr-3 pb-1 pt-1 hover:bg-blue-600" href="/reports">Назад</a>
+        </div>
+        <div>
+            <p id="hellouser" class="text-white font-medium"></p>
+            <p id="tabletitle" class="text-white font-medium">Отчет по продажам ресторана</p>
+        </div>
+        <button id="logoutButton" class="text-white font-medium rounded-md pl-3 pr-3 pb-1 pt-1 hover:bg-blue-600">Выйти</button>
+    </div>
+
+    <div class="container mx-auto mt-8">
+        <span>с</span>
+        <input type="date" id="start-date" />
+        <span>по</span>
+        <input type="date" id="end-date" />
+        <button id="search-button" class="p-3 bg-blue-500 text-white">Искать</button>
+        <button id="clear-button" class="p-3 bg-blue-500 text-white">Очистить</button>
+    </div>
+
+    <div class="container mx-auto mt-8">
+        <table class="min-w-full border-collapse border border-blue-500 table-bordered">
+            <thead>
+                <tr>
+                    {% for header in headers %}
+                    <th class="border border-blue-500 text-blue-500">{{ header }}</th>
+                    {% endfor %}
+                </tr>
+
+            </thead>
+            <tbody id="tbody">
+                {% for row in data %}
+                <tr id="{{ row.values()|list|first }}">
+                    {% for key, value in row.items() %}
+                    <td id="{{key}}" class="text-center border border-blue-500 p-3">{{ value }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const logoutButton = document.getElementById('logoutButton');
+
+// Добавим слушатель события click
+logoutButton.addEventListener('click', function() {
+    fetch('/logout', {
+        method: 'GET',
+    })
+    .then(response => {
+        if (response.redirected) {
+            window.location.href = response.url; // Перенаправление на URL из ответа сервера
+        }
+    })
+    .catch(error => {
+        console.error('Произошла ошибка при выходе из аккаунта:', error);
+    });
+});
+
+    const startDate = document.querySelector('#start-date');
+    const endDate = document.querySelector('#end-date');
+    const searchBtn = document.querySelector('#search-button');
+    const clearBtn = document.querySelector('#clear-button')
+
+    searchBtn.addEventListener('click', () => {
+        window.location.href = window.location.origin + window.location.pathname + `?start=${startDate.value}&end=${endDate.value}`
+    });
+
+    clearBtn.addEventListener('click', () => {
+        window.location.href = window.location.origin + window.location.pathname;
+        startDate.value = '';
+        endDate.value = '';
+    })
+        ;
+
+    const startDateValue = window.location.search.match(/[?&]start=([^&]+)/)?.[1];
+    const endDateValue = window.location.search.match(/[?&]end=([^&]+)/)?.[1];
+
+    startDate.value = decodeURIComponent(startDateValue ?? '');
+    endDate.value = decodeURIComponent(endDateValue ?? '');
+
+    </script>
+</body>
+
+</html>

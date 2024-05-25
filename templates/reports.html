@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports</title>
+  <!-- Подключаем CDN Tailwind CSS -->
+    <link href="../static/tw.css" rel="stylesheet">
+</head>
+
+<body id="body" class="bg-gray-100">
+  <!-- Статичная полоса сверху -->
+  <div class="bg-blue-500 py-2 text-white flex justify-between items-center px-8">
+    <div>
+            <a class="text-white font-medium rounded-md pl-3 pr-3 pb-1 pt-1 hover:bg-blue-600" href="/">Назад</a>
+        </div>
+    <p>
+    <!-- Приветствие пользователя -->
+    <div>
+      <p id="hellouser" class="text-white font-medium">Отчеты</p>
+    </div>
+    <!-- Кнопка для выхода из аккаунта -->
+    <button id="logoutButton" class="text-white font-medium rounded-md pl-3 pr-3 pb-1 pt-1 hover:bg-blue-600">Выйти</button>
+  </div>
+
+  <div id="ajax-tables" class="max-w-4xl mx-auto pt-4 pb-3 grid grid-cols-2 gap-8">
+  <!-- Левый блок с информацией о пользователе -->
+  <div id="user-info" class="bg-white rounded-lg overflow-hidden shadow-md">
+    <p class="py-3 font-medium text-center">Информация о пользователе</p>
+
+  </div>
+
+  <!-- Правый блок с кнопками для обращения к базам данных -->
+  <div id="all-tables" class="rounded-lg overflow-hidden">
+    <!-- Блок с кнопками для баз данных -->
+    <div class="grid grid-cols-1 gap-4">
+    <div id="clients" class="bg-blue-500 rounded-lg overflow-hidden shadow-md">
+        <a href="/report-restaurant" class="block py-3 text-white font-medium text-center">Продажи ресторана</a>
+    </div>
+
+         <div id="clients" class="bg-blue-500 rounded-lg overflow-hidden shadow-md">
+        <a href="/report-client" class="block py-3 text-white font-medium text-center">Покупки клиента</a>
+    </div>
+
+    </div>
+  </div>
+</div>
+<script>
+function fetchData(buttonId) {
+  fetch('/before-current-table', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ buttonId: buttonId })
+  })
+  .then(response => {
+    if (response.redirected) {
+      // Если был выполнен редирект, можно получить адрес новой страницы
+      window.location.href = response.url; // перенаправление на новую страницу
+    } else {
+    }
+  })
+  .catch(error => {
+    // Обработка ошибок
+    console.error('Ошибка:', error);
+  });
+}
+  </script>
+
+  <!-- JavaScript для функции выхода из аккаунта -->
+  <script>
+    const getUserData = function() {
+    fetch('/user_data', {
+      method: 'GET',
+  })
+  .then(response => response.json())
+  .then(data => {
+      const elementDivUserInfo = document.getElementById('user-info');
+      const elementUserImage = document.createElement('img');
+      elementUserImage.src = 'static/user.png';
+      elementUserImage.classList.add('h-20', 'mx-auto', 'my-20');
+      elementDivUserInfo.appendChild(elementUserImage);
+      const userInfo = {
+          'phone': 'Номер телефона',
+          'full_name': 'Имя',
+          'birthday': 'День рождения'
+        };
+
+        const order = ['full_name', 'phone', 'birthday'];
+
+        for (const key of order) {
+          if (Object.hasOwnProperty.call(data, key) && key !== 'admin' && data[key]) {
+            const value = data[key];
+
+            const newElement = document.createElement('p');
+            newElement.classList.add('py-3', 'font-medium', 'mx-10', 'my-5', 'bg-blue-100', 'rounded-lg', 'overflow-hidden', 'shadow-md', 'text-center');
+
+            const labelText = document.createTextNode(`${userInfo[key]}: ${value}`);
+            newElement.appendChild(labelText);
+
+            elementDivUserInfo.appendChild(newElement);
+          }
+        }
+
+
+  })
+  .catch(error => {
+      console.error('ошибка:', error);
+  });
+  }
+  document.addEventListener('DOMContentLoaded', getUserData);
+  </script>
+<script>
+// Найдем кнопку по ее ID
+const logoutButton = document.getElementById('logoutButton');
+
+// Добавим слушатель события click
+logoutButton.addEventListener('click', function() {
+    fetch('/logout', {
+        method: 'GET',
+    })
+    .then(response => {
+        if (response.redirected) {
+            window.location.href = response.url; // Перенаправление на URL из ответа сервера
+        }
+    })
+    .catch(error => {
+        console.error('Произошла ошибка при выходе из аккаунта:', error);
+    });
+});
+
+</script>
+
+</body>
+
+</html>
